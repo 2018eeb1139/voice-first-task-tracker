@@ -1,12 +1,54 @@
-# React + Vite
+# Voice-First Task Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Building a Voice First Task Tracker using React with the help of Shadcn and Tailwind CSS.
 
-Currently, two official plugins are available:
+## ✨ Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Speech-to-text for adding and editing tasks
+- Fallback to text input when needed
+- Responsive design for all devices
+- Modern UI with Tailwind CSS
 
-## Expanding the ESLint configuration
+## 🚀 Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Prerequisites
+
+- Node.js 16.0 or later
+- npm or yarn package manager
+- Modern web browser with microphone access
+
+### Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/2018eeb1139/voice-first-task-tracker
+   cd voice-first-task-tracker
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+3. **Start the development server**
+
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+4. **Open in your browser**
+   The application should automatically open in your default browser at `http://localhost:5173`
+
+## Built With
+
+- [React](https://reactjs.org/)
+- [Vite](https://vitejs.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
+- [shadcn/ui](https://ui.shadcn.com/) components
