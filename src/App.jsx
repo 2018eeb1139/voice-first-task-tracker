@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,14 +34,13 @@ const statusColors = {
 
 const statusOrder = ["Pending", "In Progress", "Completed"];
 
-export default function App() {
-  const [tasks, setTasks] = useState([]);
-  const [searchFilter, setSearchFilter] = useState("");
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState(null);
-
-  // Voice-related state
+function VoiceInputSection({
+  onConfirm,
+  actionLabel = "Create",
+  formData,
+  setFormData,
+  onClose,
+}) {
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [voiceError, setVoiceError] = useState("");
@@ -52,36 +49,18 @@ export default function App() {
   const [microphonePermission, setMicrophonePermission] = useState("prompt");
   const [useTextFallback, setUseTextFallback] = useState(false);
 
-  console.log("isListening", isListening);
-  console.log("isProcessing", isProcessing);
-  console.log("transcribedText", transcribedText);
-  console.log("showTranscription", showTranscription);
-
-  // Form data
-  const [formData, setFormData] = useState({ title: "", description: "" });
-
   const recognitionRef = useRef(null);
-  const searchRecognitionRef = useRef(null);
 
-  // Initialize speech recognition
   useEffect(() => {
     if (typeof window !== "undefined") {
       const SpeechRecognition =
         window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
-        // Main recognition for tasks
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
         recognitionRef.current.interimResults = true;
         recognitionRef.current.lang = "en-US";
 
-        // Search recognition
-        searchRecognitionRef.current = new SpeechRecognition();
-        searchRecognitionRef.current.continuous = false;
-        searchRecognitionRef.current.interimResults = false;
-        searchRecognitionRef.current.lang = "en-US";
-
-        // Check microphone permission
         navigator.permissions?.query({ name: "microphone" }).then((result) => {
           setMicrophonePermission(result.state);
         });
@@ -108,7 +87,6 @@ export default function App() {
       description = descMatch[1].trim();
     }
 
-    // Fallback: if no keywords found, use first sentence as title
     if (!title && !description) {
       const sentences = text.split(/[.!?]+/).filter((s) => s.trim());
       if (sentences.length >= 2) {
@@ -133,7 +111,7 @@ export default function App() {
     setTranscribedText("");
     setShowTranscription(false);
 
-    let finalTranscriptResult = ""; // Local variable to track final result
+    let finalTranscriptResult = "";
 
     recognitionRef.current.onresult = (event) => {
       let finalTranscript = "";
@@ -148,12 +126,10 @@ export default function App() {
         }
       }
 
-      // Update the local variable with final transcript
       if (finalTranscript) {
         finalTranscriptResult = finalTranscript;
       }
 
-      // Update state for live display
       setTranscribedText(finalTranscript || interimTranscript);
     };
 
@@ -161,7 +137,6 @@ export default function App() {
       setIsListening(false);
       setIsProcessing(false);
 
-      // Use the local variable instead of state
       const textToProcess = finalTranscriptResult.trim();
 
       if (textToProcess) {
@@ -170,7 +145,6 @@ export default function App() {
         const parsed = parseVoiceInput(textToProcess);
         setFormData(parsed);
       } else if (transcribedText.trim()) {
-        // Fallback to state if local variable is empty
         setShowTranscription(true);
         const parsed = parseVoiceInput(transcribedText);
         setFormData(parsed);
@@ -216,85 +190,8 @@ export default function App() {
     setShowTranscription(false);
   };
 
-  const filteredTasks = tasks.filter((task) =>
-    task.title.toLowerCase().includes(searchFilter.toLowerCase())
-  );
-
-  const handleAddTask = () => {
-    if (formData.title.trim()) {
-      const newTask = {
-        id: Date.now().toString(),
-        title: formData.title.trim(),
-        description: formData.description.trim() || "No description provided",
-        status: "Pending",
-      };
-      setTasks([...tasks, newTask]);
-      resetForm();
-      setIsAddModalOpen(false);
-    }
-  };
-
-  const handleEditTask = () => {
-    if ((editingTask && formData.title.trim()) || formData.description.trim()) {
-      setTasks(
-        tasks.map((task) =>
-          task.id === editingTask.id
-            ? {
-                ...task,
-                title: formData.title.trim(),
-                description: formData.description.trim() || task.description,
-              }
-            : task
-        )
-      );
-      resetForm();
-      setEditingTask(null);
-      setIsEditModalOpen(false);
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({ title: "", description: "" });
-    setTranscribedText("");
-    setShowTranscription(false);
-    setUseTextFallback(false);
-    setVoiceError("");
-  };
-
-  const toggleTaskStatus = (taskId) => {
-    setTasks(
-      tasks.map((task) => {
-        if (task.id === taskId) {
-          const currentIndex = statusOrder.indexOf(task.status);
-          const nextIndex = (currentIndex + 1) % statusOrder.length;
-          return { ...task, status: statusOrder[nextIndex] };
-        }
-        return task;
-      })
-    );
-  };
-
-  const openAddModal = () => {
-    resetForm();
-    setIsAddModalOpen(true);
-  };
-
-  const openEditModal = (task) => {
-    setEditingTask(task);
-    setFormData({ title: task.title, description: task.description });
-    setIsEditModalOpen(true);
-  };
-
-  const closeModals = () => {
-    setIsAddModalOpen(false);
-    setIsEditModalOpen(false);
-    setEditingTask(null);
-    resetForm();
-  };
-
-  const VoiceInputSection = ({ onConfirm, actionLabel = "Create" }) => (
+  return (
     <div className="space-y-6">
-      {/* Voice Input Button */}
       <div className="text-center">
         <div className="mb-4">
           <Button
@@ -332,7 +229,6 @@ export default function App() {
         )}
       </div>
 
-      {/* Live Transcription */}
       {transcribedText && !showTranscription && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -345,7 +241,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Transcription Confirmation */}
       {showTranscription && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-3">
@@ -403,7 +298,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Text Fallback */}
       {useTextFallback && (
         <div className="space-y-4 border-t pt-4">
           <div className="flex items-center gap-2 mb-4">
@@ -439,8 +333,6 @@ export default function App() {
           </div>
         </div>
       )}
-
-      {/* Error Display */}
       {voiceError && (
         <Alert className="border-red-200 bg-red-50">
           <AlertCircle className="h-4 w-4 text-red-600" />
@@ -459,9 +351,8 @@ export default function App() {
         </Alert>
       )}
 
-      {/* Action Buttons */}
       <div className="flex gap-3 pt-4">
-        <Button variant="outline" onClick={closeModals} className="flex-1">
+        <Button variant="outline" onClick={onClose} className="flex-1">
           Cancel
         </Button>
         <Button
@@ -474,11 +365,107 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+export default function App() {
+  const [tasks, setTasks] = useState([]);
+  const [searchFilter, setSearchFilter] = useState("");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+
+  const [formData, setFormData] = useState({ title: "", description: "" });
+
+  const searchRecognitionRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        searchRecognitionRef.current = new SpeechRecognition();
+        searchRecognitionRef.current.continuous = false;
+        searchRecognitionRef.current.interimResults = false;
+        searchRecognitionRef.current.lang = "en-US";
+      }
+    }
+  }, []);
+
+  const filteredTasks = tasks.filter((task) =>
+    task.title.toLowerCase().includes(searchFilter.toLowerCase())
+  );
+
+  const handleAddTask = () => {
+    if (formData.title.trim()) {
+      const newTask = {
+        id: Date.now().toString(),
+        title: formData.title.trim(),
+        description: formData.description.trim() || "No description provided",
+        status: "Pending",
+      };
+      setTasks([...tasks, newTask]);
+      resetForm();
+      setIsAddModalOpen(false);
+    }
+  };
+
+  const handleEditTask = () => {
+    if (editingTask && formData.title.trim()) {
+      setTasks(
+        tasks.map((task) =>
+          task.id === editingTask.id
+            ? {
+                ...task,
+                title: formData.title.trim(),
+                description: formData.description.trim() || task.description,
+              }
+            : task
+        )
+      );
+      resetForm();
+      setEditingTask(null);
+      setIsEditModalOpen(false);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({ title: "", description: "" });
+  };
+
+  const toggleTaskStatus = (taskId) => {
+    setTasks(
+      tasks.map((task) => {
+        if (task.id === taskId) {
+          const currentIndex = statusOrder.indexOf(task.status);
+          const nextIndex = (currentIndex + 1) % statusOrder.length;
+          return { ...task, status: statusOrder[nextIndex] };
+        }
+        return task;
+      })
+    );
+  };
+
+  const openAddModal = () => {
+    resetForm();
+    setIsAddModalOpen(true);
+  };
+
+  const openEditModal = (task) => {
+    setEditingTask(task);
+    setFormData({ title: task.title, description: task.description });
+    setIsEditModalOpen(true);
+  };
+
+  const closeModals = () => {
+    setIsAddModalOpen(false);
+    setIsEditModalOpen(false);
+    setEditingTask(null);
+    resetForm();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-semibold text-gray-900">
             Voice Task Tracker
@@ -492,7 +479,6 @@ export default function App() {
           </Button>
         </div>
 
-        {/* Voice Search */}
         <div className="mb-6">
           <div className="flex gap-2 max-w-md">
             <Input
@@ -504,7 +490,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Task List */}
         {filteredTasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="mb-6">
@@ -571,7 +556,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Add Task Modal */}
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
@@ -584,12 +568,14 @@ export default function App() {
               <VoiceInputSection
                 onConfirm={handleAddTask}
                 actionLabel="Create Task"
+                formData={formData}
+                setFormData={setFormData}
+                onClose={closeModals}
               />
             </div>
           </DialogContent>
         </Dialog>
 
-        {/* Edit Task Modal */}
         <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
@@ -602,6 +588,9 @@ export default function App() {
               <VoiceInputSection
                 onConfirm={handleEditTask}
                 actionLabel="Update Task"
+                formData={formData}
+                setFormData={setFormData}
+                onClose={closeModals}
               />
             </div>
           </DialogContent>
