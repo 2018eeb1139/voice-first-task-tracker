@@ -2,14 +2,14 @@
 
 Building a Voice First Task Tracker using React with the help of Shadcn and Tailwind CSS.
 
-## ✨ Features
+## Features
 
 - Speech-to-text for adding and editing tasks
 - Fallback to text input when needed
 - Responsive design for all devices
 - Modern UI with Tailwind CSS
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
